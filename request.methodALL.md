@@ -20,3 +20,6 @@
 18. req.stale()
 19. req.signedCookies()
 20. req.get()
+
+hese are some of the common methods available on the request object in Express.js. They provide access to various aspects of the incoming HTTP request, allowing developers to extract relevant information and process requests accordingly
+
