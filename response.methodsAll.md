@@ -10,3 +10,7 @@
 8. res.set()
 9. res.cookie()
 10. res.clearCookie()
+
+
+__dirname
+__filename 
