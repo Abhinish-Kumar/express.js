@@ -1,5 +1,8 @@
 # Express middleware
 
+We can do whatever we want to do with request of client , allow it or not.
+
+
 ```node
 
 const express=require('express');
