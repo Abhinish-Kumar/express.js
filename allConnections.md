@@ -52,3 +52,50 @@ app.listen(port, () => {
 </html>
 
 ```
+
+
+
+# POST
+
+### Server
+
+```javascript
+const express = require("express");
+const app = express();
+const cors = require("cors");
+app.use(cors());
+const port = 3000;
+app.use(express.json());
+app.post("/", (req, res) => {
+  let data = req.body;
+  console.log(data);
+  res.end("Successfully received");
+});
+
+app.listen(port, () => {
+  console.log("Yoour server is running now");
+});
+
+```
+
+### CLient
+
+```html
+
+const express = require("express");
+const app = express();
+const cors = require("cors");
+app.use(cors());
+const port = 3000;
+app.use(express.json());
+app.post("/", (req, res) => {
+  let data = req.body;
+  console.log(data);
+  res.end("Successfully received");
+});
+
+app.listen(port, () => {
+  console.log("Yoour server is running now");
+});
+
+```
