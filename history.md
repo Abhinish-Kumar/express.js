@@ -155,6 +155,47 @@ app.listen(3000, () => {
    - **Feature**: Removed the dependency on the `connect` middleware, which was previously a part of Express.
    - **Reason**: Cleaned up the codebase and simplified the architecture by directly implementing core functionality without relying on an external module.
 
+
+```javascript
+const express = require('express');
+const app = express();
+
+// Create a router for '/users' routes
+const userRouter = express.Router();
+
+// Define routes for '/users'
+userRouter.get('/', (req, res) => {
+  res.send('List of all users');
+});
+
+userRouter.get('/:id', (req, res) => {
+  res.send(`User with ID ${req.params.id}`);
+});
+
+// Mount the router on the '/users' path
+app.use('/users', userRouter);
+
+// Create another router for '/products' routes
+const productRouter = express.Router();
+
+// Define routes for '/products'
+productRouter.get('/', (req, res) => {
+  res.send('List of all products');
+});
+
+productRouter.get('/:id', (req, res) => {
+  res.send(`Product with ID ${req.params.id}`);
+});
+
+// Mount the router on the '/products' path
+app.use('/products', productRouter);
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
 ---
 
 #### **2013 - Version 4.x** (Minor Updates)
@@ -167,6 +208,74 @@ app.listen(3000, () => {
    - **Feature**: Introduced middleware like `helmet` for setting various HTTP headers to protect applications.
    - **Reason**: Strengthened the framework's security capabilities as web application vulnerabilities became a larger concern.
 
+
+```javascript
+const express = require('express');
+const app = express();
+
+// Define a middleware function
+function logRequest(req, res, next) {
+  console.log(`${req.method} ${req.url}`);
+  next(); // Pass control to the next middleware
+}
+
+// Define a user router
+const userRouter = express.Router();
+userRouter.use(logRequest); // Apply the middleware to the user router
+
+// Define user-specific routes
+userRouter.get('/', (req, res) => {
+  res.send('List of users');
+});
+
+userRouter.get('/:id', (req, res) => {
+  res.send(`User with ID ${req.params.id}`);
+});
+
+// Define a product router
+const productRouter = express.Router();
+productRouter.use(logRequest); // Apply the same middleware to the product router
+
+// Define product-specific routes
+productRouter.get('/', (req, res) => {
+  res.send('List of products');
+});
+
+productRouter.get('/:id', (req, res) => {
+  res.send(`Product with ID ${req.params.id}`);
+});
+
+// Mount the routers on different paths
+app.use('/users', userRouter);
+app.use('/products', productRouter);
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
+
+
+```javascript
+const express = require('express');
+const helmet = require('helmet'); // Security middleware
+const app = express();
+
+// Use helmet for basic security headers
+app.use(helmet());
+
+// Define a route
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
 ---
 
 #### **2014 - 2015 - Version 4.x (Minor Updates)**
@@ -179,6 +288,60 @@ app.listen(3000, () => {
    - **Feature**: Introduced experimental support for HTTP/2, an updated version of the HTTP protocol with multiplexing and improved performance.
    - **Reason**: To future-proof Express and provide performance improvements over HTTP/1.1.
 
+
+```javascript
+const express = require('express');
+const app = express();
+const path = require('path');
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d', // Cache static files for 1 day
+  setHeaders: (res, path) => {
+    // Customize the headers for specific file types
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache'); // Don't cache HTML files
+    }
+  }
+}));
+
+// Define a route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
+
+
+```javascript
+const express = require('express');
+const spdy = require('spdy'); // HTTP/2 server library
+const fs = require('fs');
+const app = express();
+
+// Read SSL certificate files
+const options = {
+  key: fs.readFileSync('./server.key'),
+  cert: fs.readFileSync('./server.crt')
+};
+
+// Create an HTTP/2 server using spdy
+spdy.createServer(options, app)
+  .listen(3000, () => {
+    console.log('HTTP/2 server is running on port 3000');
+  });
+
+// Define a route
+app.get('/', (req, res) => {
+  res.send('Hello, HTTP/2!');
+});
+
+```
 ---
 
 #### **2016 - Version 4.x (Minor Updates)**
@@ -187,6 +350,51 @@ app.listen(3000, () => {
     - **Feature**: Added better support for asynchronous middleware functions and the use of `async/await`.
     - **Reason**: To better handle asynchronous operations and allow developers to write cleaner code with the modern `async/await` syntax in JavaScript.
 
+
+```javascript
+const express = require('express');
+const app = express();
+
+// Simulate an async function to fetch user data from a database
+function getUserData(userId) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (userId === 1) {
+        resolve({ id: 1, name: 'John Doe' });
+      } else {
+        reject(new Error('User not found'));
+      }
+    }, 1000);
+  });
+}
+
+// Async middleware to fetch user data
+app.use(async (req, res, next) => {
+  try {
+    const userData = await getUserData(1);  // Simulated DB call
+    req.user = userData;  // Attach user data to the request object
+    next();  // Pass control to the next middleware
+  } catch (err) {
+    next(err);  // If there's an error, pass it to the error-handling middleware
+  }
+});
+
+// Route handler that uses the user data
+app.get('/', (req, res) => {
+  res.send(`Hello, ${req.user.name}`);
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  res.status(500).send('Something went wrong: ' + err.message);
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
 ---
 
 #### **2017 - 2018 - Version 4.x (Minor Updates)**
@@ -199,6 +407,59 @@ app.listen(3000, () => {
     - **Feature**: Introduced more default configurations that enabled better security practices, such as setting HTTP headers properly and preventing cross-site scripting (XSS) and cross-site request forgery (CSRF).
     - **Reason**: As web security threats increased, it became essential for frameworks to provide built-in protections.
 
+
+```javascript
+const express = require('express');
+const app = express();
+
+// Middleware to parse JSON bodies
+app.use(express.json());  // Automatically parses incoming JSON data
+
+// Middleware to parse URL-encoded bodies
+app.use(express.urlencoded({ extended: true }));  // Automatically parses URL-encoded data
+
+// Example route that handles POST requests with JSON body
+app.post('/submit', (req, res) => {
+  console.log(req.body);  // Automatically parsed JSON or URL-encoded data
+  res.send('Data received!');
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
+
+```javascript
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });  // Set up file upload destination
+
+app.post('/upload', upload.single('file'), (req, res) => {
+  console.log(req.file);  // Access uploaded file
+  res.send('File uploaded successfully!');
+});
+
+```
+```javascript
+const express = require('express');
+const helmet = require('helmet');
+const app = express();
+
+// Use helmet to set secure HTTP headers
+app.use(helmet());
+
+// Sample route
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+```
 ---
 
 #### **2019 - 2020 - Version 4.x (Minor Updates)**
